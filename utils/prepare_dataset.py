@@ -1,7 +1,8 @@
 import os
 import json
 from PIL import Image
-
+from tqdm import tqdm
+from pathlib import Path
 
 def create_dirs(datasetDir):
     class_names = ['bicycle', 'car', 'person']
@@ -21,7 +22,7 @@ def parse_mscoco(datasetDir, annotations, set_type='train'):
     c1 = 0
     count = 0
     im_crop = [0,0,0,0]
-    for i in annotations['annotations']:
+    for i in tqdm(annotations['annotations']):
         if i['category_id']==1:
             c1 = c1 + 1
             ID = i['image_id']
@@ -105,12 +106,18 @@ def parse_mscoco(datasetDir, annotations, set_type='train'):
                 area = im_car.crop(im_crop)
                 area.save(os.path.join(datasetDir, 'sgada_data/mscoco/{}/car/{}.jpg'.format(set_type, c1)))
 
+def rename_flri(dir):
+    datadir = os.path.join(dir,'FLIR_ADAS_1_3/images_thermal_train/data')
+    for i in tqdm(os.listdir(datadir)):
+        file_dir = Path(os.path.join(datadir,i))
+        name = i.split('-')
+        os.rename(os.path.join(datadir,i), os.path.join(datadir,'FLIR_{}_{}.jpeg'.format(name[3],name[4])))
 
 def parse_flir_train(datasetDir, annotations):
     c1 = 0
     count = 0
     im_crop = [0,0,0,0]
-    for i in annotations['annotations']:
+    for i in tqdm(annotations['annotations']):
         if i['category_id']==1:
             c1 = c1 + 1
             ID = i['image_id']+1
@@ -200,7 +207,7 @@ def parse_flir_val(datasetDir, annotations):
     c1 = 0
     count = 0
     im_crop = [0,0,0,0]
-    for i in annotations['annotations']:
+    for i in tqdm(annotations['annotations']):
         if i['category_id']==1:
             c1 = c1 + 1
             ID = i['image_id']+8863
@@ -294,36 +301,60 @@ def parse_flir_val(datasetDir, annotations):
                 area = im_car.crop(im_crop)
                 area.save(os.path.join(datasetDir, 'sgada_data/flir/val/car/FLIR_{}.jpeg'.format(c1)))
 
+def generate_txt(location, file_name):
+    data_dic = {'bicycle':0,'car':1,'person':2}
+    file_name = location+file_name
+    print (file_name)
+    df=open(file_name,"w+")
+
+    for i in data_dic.items():
+        directory = location+str(i[0])
+        for filename in tqdm(os.listdir(directory)):
+            f = os.path.join(directory, filename)
+            # checking if it is a file
+            if os.path.isfile(f):
+                df.write("./"+i[0]+"/"+filename+" "+str(i[1]))
+                df.write('\n')
+    df.close()
+
 
 def main():
     datasetDir = os.environ['DATASETDIR']
 
-    print(f'Creating output dirs if not exist under {datasetDir}')
-    create_dirs(datasetDir)
+    # generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/flir/train/","flir_train.txt")
+    generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/flir/val/","flir_val.txt")
+    generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/mscoco/train/","mscoco_train.txt")
+    generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/mscoco/val/","mscoco_val.txt")
+    
+    
+    # print(f'Creating output dirs if not exist under {datasetDir}')
+    # create_dirs(datasetDir)
 
-    print('Loading MSCOCO training set annotations')
-    with open(os.path.join(datasetDir, 'mscoco/annotations_trainval2017/annotations/instances_train2017.json'),'r') as f:
-        data = json.load(f)
-    print('Parsing MSCOCO training set')
-    parse_mscoco(datasetDir, data, set_type='train')
+    # print('Loading MSCOCO training set annotations')
+    # with open(os.path.join(datasetDir, 'mscoco/annotations_trainval2017/annotations/instances_train2017.json'),'r') as f:
+    #     data = json.load(f)
+    # print('Parsing MSCOCO training set')
+    # parse_mscoco(datasetDir, data, set_type='train')
 
-    print('Loading MSCOCO validation set annotations')
-    with open(os.path.join(datasetDir, 'mscoco/annotations_trainval2017/annotations/instances_val2017.json'),'r') as f:
-        data = json.load(f)
-    print('Parsing MSCOCO validation set')
-    parse_mscoco(datasetDir, data, set_type='val')
+    # print('Loading MSCOCO validation set annotations')
+    # with open(os.path.join(datasetDir, 'mscoco/annotations_trainval2017/annotations/instances_val2017.json'),'r') as f:
+    #     data = json.load(f)
+    # print('Parsing MSCOCO validation set')
+    # parse_mscoco(datasetDir, data, set_type='val')
 
-    print('Loading FLIR training set annotations')
-    with open(os.path.join(datasetDir, 'FLIR_ADAS_1_3/train/thermal_annotations.json'),'r') as f:
-        data = json.load(f)
-    print('Parsing FLIR training set')
-    parse_flir_train(datasetDir, data)
+    # print('Loading FLIR training set annotations')
+    # with open(os.path.join(datasetDir, 'FLIR_ADAS_1_3/train/thermal_annotations.json'),'r') as f:
+    #     data = json.load(f)
+    # print('Parsing FLIR training set')
+    # parse_flir_train(datasetDir, data)
 
-    print('Loading FLIR validation set annotations')
-    with open(os.path.join(datasetDir, 'FLIR_ADAS_1_3/val/thermal_annotations.json'),'r') as f:
-        data = json.load(f)
-    print('Parsing FLIR validation set')
-    parse_flir_val(datasetDir, data)
+    # print('Loading FLIR validation set annotations')
+    # with open(os.path.join(datasetDir, 'FLIR_ADAS_1_3/val/thermal_annotations.json'),'r') as f:
+    #     data = json.load(f)
+    # print('Parsing FLIR validation set')
+    # parse_flir_val(datasetDir, data)
+
+    
 
     print('Done')
 
