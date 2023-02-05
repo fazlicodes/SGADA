@@ -321,7 +321,7 @@ def generate_txt(location, file_name):
 def main():
     datasetDir = os.environ['DATASETDIR']
 
-    # generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/flir/train/","flir_train.txt")
+    generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/flir/train/","flir_train.txt")
     generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/flir/val/","flir_val.txt")
     generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/mscoco/train/","mscoco_train.txt")
     generate_txt("/home/mohamed.imam/Projects/AI702/Datasets/sgada_data/mscoco/val/","mscoco_val.txt")
